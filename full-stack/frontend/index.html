@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发票识别助手 · 多模态 + 智能体</title>
+    <link rel="stylesheet" href="static/styles/styles.css">
+</head>
+<body>
+
+<div class="app">
+
+    <!-- ========== 侧边栏 ========== -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">🧾</div>
+            <div class="logo-text">
+                <b>发票识别助手</b>
+                <span>多模态 + 智能体</span>
+            </div>
+        </div>
+
+        <nav class="nav">
+            <button class="nav-item active" data-page="upload">📤 上传识别</button>
+            <button class="nav-item" data-page="list">📋 发票列表</button>
+            <button class="nav-item" data-page="detail" hidden>🔍 发票详情</button>
+            <button class="nav-item" data-page="chat">💬 智能体对话</button>
+            <button class="nav-item" data-page="eval">📊 评测报告</button>
+        </nav>
+
+        <div class="sidebar-foot">
+            <span class="dot"></span> Mock 模式 · 未连接后端
+        </div>
+    </aside>
+
+    <!-- ========== 主区域 ========== -->
+    <div class="main">
+
+        <header class="topbar">
+            <div class="topbar-title">
+                <h1 id="pageTitle">上传识别</h1>
+                <span class="sub" id="pageSub">上传发票图片，多模态模型自动抽取字段</span>
+            </div>
+            <div class="topbar-actions">
+                <button class="btn ghost sm" data-action="open-settings">⚙ 设置</button>
+                <button class="btn ghost sm" data-action="export-all">⬇ 导出全部</button>
+            </div>
+        </header>
+
+        <div class="content">
+
+            <!-- ========== 页面 1：上传识别 ========== -->
+            <section class="page active" id="page-upload">
+                <div class="grid-2">
+
+                    <div class="card">
+                        <div class="card-head">
+                            <h2>上传发票</h2>
+                            <span class="badge gray">JPG / PNG / PDF</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="dropzone" id="dropzone">
+                                <div class="dropzone-icon">📄</div>
+                                <h3>点击或拖拽文件到此处</h3>
+                                <p>支持单张、多张、PDF 多页</p>
+                            </div>
+                            <input type="file" id="fileInput" multiple accept="image/*,.pdf" hidden>
+
+                            <ul class="file-list" id="fileList"></ul>
+
+                            <div class="progress" id="progressWrap" hidden>
+                                <div class="progress-bar" id="progressBar"></div>
+                            </div>
+
+                            <div class="btn-row">
+                                <button class="btn" id="btnRecognize" disabled>🚀 开始识别</button>
+                                <button class="btn ghost" id="btnClear">清空</button>
+                                <button class="btn ghost" id="btnSample">加载示例</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head">
+                            <h2>识别结果</h2>
+                            <span class="badge blue" id="resultBadge" hidden>—</span>
+                        </div>
+                        <div class="card-body" id="resultBody">
+                            <div class="empty">
+                                <div class="empty-icon">🧠</div>
+                                <div>还没有识别结果</div>
+                                <div class="empty-tip">上传发票后点击「开始识别」</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ========== 页面 2：发票列表 ========== -->
+            <section class="page" id="page-list">
+                <div class="toolbar">
+                    <input class="input search" id="searchInput" placeholder="搜索发票号 / 销售方">
+                    <select class="input filter" id="typeFilter">
+                        <option value="">全部票种</option>
+                        <option>增值税电子普通发票</option>
+                        <option>增值税电子专用发票</option>
+                    </select>
+                    <select class="input filter" id="statusFilter">
+                        <option value="">全部状态</option>
+                        <option>已校对</option>
+                        <option>待校对</option>
+                    </select>
+                    <div class="spacer"></div>
+                    <button class="btn sm" id="btnAddInvoice">＋ 新增发票</button>
+                    <button class="btn ghost sm" id="btnExportList">⬇ 导出</button>
+                </div>
+
+                <div class="card">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>发票号码</th>
+                            <th>开票日期</th>
+                            <th>销售方</th>
+                            <th class="num">价税合计</th>
+                            <th>票种</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="invoiceTbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ========== 页面 3：发票详情 ========== -->
+            <section class="page" id="page-detail">
+                <div class="grid-2">
+
+                    <div class="card">
+                        <div class="card-head">
+                            <h2>发票原图</h2>
+                            <span class="badge gray" id="detailFile">—</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="doc-preview">
+                                <div class="doc-preview-icon">🖼️</div>
+                                <div>原图预览区域</div>
+                                <div class="empty-tip">接入后端后显示真实发票图片</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head">
+                            <h2>字段校对</h2>
+                            <span class="badge orange" id="detailLow">—</span>
+                        </div>
+                        <div class="card-body" id="detailFields"></div>
+                        <div class="card-foot">
+                            <button class="btn" id="btnSaveDetail">💾 保存校对</button>
+                            <button class="btn ghost" id="btnRerecognize">🔄 重新识别</button>
+                            <div class="spacer"></div>
+                            <button class="btn ghost sm" id="btnBackList">返回列表</button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ========== 页面 4：智能体对话 ========== -->
+            <section class="page" id="page-chat">
+                <div class="card chat-card">
+                    <div class="card-head">
+                        <h2>智能体对话</h2>
+                        <span class="badge green">工具：查重 / 政策 / 科目 / 报销单</span>
+                    </div>
+
+                    <div class="chat-body" id="chatBody"></div>
+
+                    <div class="chat-quick" id="chatQuick">
+                        <button class="chip" data-ask="这张发票应该记什么科目？">记什么科目？</button>
+                        <button class="chip" data-ask="差旅费报销标准是多少？">差旅费标准</button>
+                        <button class="chip" data-ask="帮我生成报销单">生成报销单</button>
+                        <button class="chip" data-ask="这张发票有没有重复？">检查重复</button>
+                    </div>
+
+                    <div class="chat-foot">
+                        <input class="input" id="chatInput" placeholder="问我任何报销相关问题…">
+                        <button class="btn" id="btnSend">发送</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== 页面 5：评测报告 ========== -->
+            <section class="page" id="page-eval">
+                <div class="toolbar">
+                    <div class="spacer"></div>
+                    <button class="btn ghost sm" id="btnRefreshEval">🔄 刷新</button>
+                    <button class="btn sm" id="btnExportEval">⬇ 导出报告</button>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="card stat"><div class="label">评测集规模</div><div class="value">120</div><div class="delta">张脱敏发票</div></div>
+                    <div class="card stat"><div class="label">字段准确率</div><div class="value">94.2%</div><div class="delta">↑ 2.1%</div></div>
+                    <div class="card stat"><div class="label">整票准确率</div><div class="value">86.7%</div><div class="delta">↑ 4.3%</div></div>
+                    <div class="card stat"><div class="label">平均时延</div><div class="value">2.4s</div><div class="delta muted">单张发票</div></div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-head"><h2>多模型字段准确率</h2></div>
+                        <div class="card-body">
+                            <div class="bar-row"><span class="name">GPT-4o</span><div class="bar-track"><i style="width:94.2%"></i></div><span class="pct">94.2%</span></div>
+                            <div class="bar-row"><span class="name">Qwen-VL-Max</span><div class="bar-track"><i style="width:91.5%"></i></div><span class="pct">91.5%</span></div>
+                            <div class="bar-row"><span class="name">GLM-4V</span><div class="bar-track"><i style="width:88.3%"></i></div><span class="pct">88.3%</span></div>
+                            <div class="bar-row"><span class="name">PaddleOCR</span><div class="bar-track"><i style="width:76.8%"></i></div><span class="pct">76.8%</span></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head"><h2>各字段准确率</h2></div>
+                        <div class="card-body">
+                            <div class="bar-row"><span class="name">发票号码</span><div class="bar-track"><i style="width:98%"></i></div><span class="pct">98%</span></div>
+                            <div class="bar-row"><span class="name">开票日期</span><div class="bar-track"><i style="width:97%"></i></div><span class="pct">97%</span></div>
+                            <div class="bar-row"><span class="name">价税合计</span><div class="bar-track"><i style="width:96%"></i></div><span class="pct">96%</span></div>
+                            <div class="bar-row"><span class="name">购买方名称</span><div class="bar-track"><i style="width:93%"></i></div><span class="pct">93%</span></div>
+                            <div class="bar-row"><span class="name">税率</span><div class="bar-track"><i class="warn" style="width:90%"></i></div><span class="pct">90%</span></div>
+                            <div class="bar-row"><span class="name">明细表格</span><div class="bar-track"><i class="warn" style="width:85%"></i></div><span class="pct">85%</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-20">
+                    <div class="card-head"><h2>Badcase 分类</h2></div>
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                            <tr><th>类型</th><th class="num">数量</th><th class="num">占比</th><th>典型表现</th></tr>
+                            </thead>
+                            <tbody id="badcaseTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="static/scripts/app.js"></script>
+</body>
+</html>
